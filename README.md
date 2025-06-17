@@ -55,10 +55,10 @@ tforder -dir deployments -recursive -out infra.svg
 The tforder project creates visual dependency relationships between your infrastructure deployments (in much the same way that Terraform can generate a graph of dependency relationships between resources within a deployment). See the [tforder](https://github.com/raffraffraff/tforder) project for more information.
 
 ## Directory Naming Convention
-This project contains an example directory structure. It's designed to minimize the differences between each environment, region etc. The root of this project contains:
+_This_ project contains an example directory structure. (You can come up with your own, but you'll have to update the `hiera.yaml` and consider where you want to store YAML files). The root of this project contains:
 - modules: wrapper modules that accept a single JSON encoded configuration
-- hiera: a terraform module that accepts 'context' and returns 'config'
-- deployments: directory structure that uses AWS account, region, environment etc (see below)
+- hiera: a terraform module that accepts context (which the provider calls 'scope') and returns config
+- deployments: a directory structure that encodes account, region, environment etc (see below)
 
 ## Example Deployment Directories
 ```
