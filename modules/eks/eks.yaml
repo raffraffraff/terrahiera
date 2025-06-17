@@ -1,0 +1,58 @@
+eks:
+  cluster_name: "%{aws_account}-%{group}"
+  cluster_version: 1.32
+  cluster_endpoint_public_access: true   # insecure, just use for demo
+  cluster_endpoint_public_access_cidrs:
+   - "194.125.120.232/32"
+  tags: "%{alias('tags')}"
+  self_managed_node_groups: {}
+  eks_managed_node_groups:
+    controllers:
+      min_size: 0
+      max_size: 4
+      capacity_type: "ON_DEMAND"
+      instance_type_regexes:
+        - "[crtm]+[34567]+[ain]?.medium"
+      block_device:
+        size: 30
+        type: "gp3"
+        iops: 3000
+        throughput: 150
+      labels:
+        node_group: "controllers"
+    monitoring:
+      min_size: 0
+      max_size: 4
+      capacity_type: "ON_DEMAND"
+      instance_type_regexes:
+        - "[tm]+[34567]+[ain]?.large"
+      block_device:
+        size: 60
+        type: "gp3"
+        iops: 4000
+        throughput: 200
+      labels:
+        node_group: "monitoring"
+      taints:
+      - key: "monitoring"
+        value: "true"
+        effect: "NO_SCHEDULE"
+
+  cluster_addons:
+    coredns:
+      most_recent: true
+      preserve: true
+      timeouts:
+        create: "25m"
+        delete: "10m"
+    kube-proxy:
+      most_recent: true
+    vpc-cni:
+      most_recent: true
+      preserve: true
+    aws-ebs-csi-driver:
+      most_recent: true
+
+lookup_options:
+  eks:
+    merge: deep

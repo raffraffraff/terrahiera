@@ -1,0 +1,88 @@
+helm_releases:
+  metrics-server:
+    enable: "%{hiera('eks.enable')}"
+    chart: metrics-server
+    repository: https://charts.bitnami.com/bitnami
+    namespace: kube-system
+    set:
+      apiService.create: true
+  prometheus-operator:
+    enable: "%{hiera('eks.enable')}"
+    chart: kube-prometheus-stack
+    repository: "https://prometheus-community.github.io/helm-charts"
+    version: 15.2.0
+    namespace: prom
+    create_namespace: true
+    values:
+      prometheusSpec:
+        serviceMonitorSelectorNilUsesHelmValues: false
+        podMonitorSelectorNilUsesHelmValues: false
+      grafana:
+        grafana.ini:
+         server:
+           root_url: "https://%{environment}-%{hiera('core.region_shortname')}.%{hiera('cloudflare.dns_domain')}/grafana"
+        ingress:
+          enabled: true
+          tls: []
+          hosts: []
+          path: /grafana/?(.*)
+          annotations:
+            kubernetes.io/ingress.class: "nginx"
+            nginx.ingress.kubernetes.io/rewrite-target: /$1
+            nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+        additionalDataSources:
+          - name: Loki
+            type: loki
+            url: http://loki.loki.svc.cluster.local:3100
+            access: proxy
+          - name: Loki-Prometheus
+            type: prometheus
+            url: http://loki.loki.svc.cluster.local:3100/loki
+            access: proxy
+
+  loki:
+    enable: "%{hiera('eks.enable')}"
+    namespace: loki
+    chart: loki
+    create_namespace: true
+    repository: "https://grafana.github.io/loki/charts"
+  prometheus-adapter:
+    enable: "%{hiera('eks.enable')}"
+    chart: prometheus-adapter
+    repository: "https://prometheus-community.github.io/helm-charts"
+    version: 2.12.1
+    namespace: prom
+    create_namespace: true
+    values:
+      prometheus:
+        url: http://prometheus-operator-kube-p-prometheus.prom.svc.cluster.local
+  promtail:
+    enable: "%{hiera('eks.enable')}"
+    namespace: loki
+    chart: promtail
+    create_namespace: true
+    timeout: 600
+    repository: "https://grafana.github.io/loki/charts"
+    set:
+      loki.serviceName: "loki"
+    values:
+      extraScrapeConfigs:
+        - job_name: journal
+          journal:
+            path: /var/log/journal
+            max_age: 2h
+            labels:
+              job: systemd-journal
+          relabel_configs:
+            - source_labels: ['__journal__systemd_unit']
+              target_label: 'unit'
+            - source_labels: ['__journal__hostname']
+              target_label: 'hostname'
+      extraVolumes:
+        - name: journal
+          hostPath:
+            path: /var/log/journal
+      extraVolumeMounts:
+        - name: journal
+          mountPath: /var/log/journal
+          readOnly: true

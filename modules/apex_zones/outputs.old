@@ -1,0 +1,32 @@
+# Not really required by other modules?
+#
+# output "delegation_set_ids" {
+#   value = { for k, v in aws_route53_delegation_set.apex :
+#               k => {
+#                 id           = v.id
+#                 arn          = v.arn
+#                 name_servers = v.name_servers
+#               }
+#           }
+# }
+
+output "apex_zones" {
+  description = "Map of dns apex zones with ARNs and IDs"
+  value       = { for k, v in aws_route53_zone.apex : 
+                  k => {
+                   zone_id      = v.zone_id
+                   arn          = v.arn
+                   name_servers = v.name_servers
+                  }
+                }
+}
+
+output "apex_zone_arns" {
+  description = "Zone ARN of Route53 zone"
+  value       = [ for k, v in aws_route53_zone.apex : v.arn ]
+}
+
+output "apex_zone_name_servers" {
+  description = "Name servers of Route53 zone"
+  value       = { for k, v in aws_route53_zone.apex : v.name => v.name_servers }
+}

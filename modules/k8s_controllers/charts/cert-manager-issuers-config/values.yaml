@@ -1,0 +1,9 @@
+# Let's Encrypt will use this to contact you about expiring certificates, and issues related to your account.
+email: ""
+
+aws: []
+# Example:
+#  - region: "eu-west-1"
+#    hostedZoneID: "ABC123DEF456"
+#    dnsZoneSelectors:
+#      - mycompany.com

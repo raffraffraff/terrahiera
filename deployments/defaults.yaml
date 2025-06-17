@@ -1,0 +1,20 @@
+# Global defaults
+time_zone: "UTC"
+arn_partition: "aws"
+
+tags:
+  CreatedBy: "terraform"
+  Region: "%{region}"
+  Account: "%{aws_account}"
+  Stack: "%{stack}"
+  Group: "%{group}"
+
+apex_zones:
+  "%{aws_account}.internal.net":
+    comment: "Apex zone for internal environments, which require VPN"
+    tags: "%{alias('tags')}"
+    force_destroy: false
+  "%{aws_account}.public.io":
+    comment: "Apex zone for public facing infrastructure"
+    tags: "%{alias('tags')}"
+    force_destroy: false

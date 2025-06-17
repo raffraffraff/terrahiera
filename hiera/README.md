@@ -1,0 +1,154 @@
+# About
+This implements Hiera lookups as a TF module. It accepts the Hiera context and search key, and returns the result of the lookup via an output.
+
+This lookup scope contains _aws_account_ name, _region_, _group_ and finally _stack_ (the collection of resources you are deploying). This whole process is fully automatic, but it depends on your TF code following this directory structure:
+
+```
+  ├── dev                             < aws account name
+  │   └── eu-west-1                    < region
+  │       ├── ew1a                       < group
+  │       │   ├── dns-zone               < stack
+  │       │   ├── eks
+  │       │   ├── rds
+  │       │   └── vpc
+  │       └── ew1b
+  │           ├── database
+  │           └── dns-record
+  └── prod
+      └── eu-west-1
+          ├── ops
+          │   ├── dns-zone
+          │   ├── eks
+          │   ├── rds
+          │   └── vpc
+          ├── blue
+          │   ├── database
+          │   └── dns-record
+          └── green
+              ├── database
+              └── dns-record
+```
+
+# Usage
+This module is called like a regular Terraform module, but behaves a bit like a data resource instead. It reads the hierarchy rules from the hiera.yaml file in the top directory and looks up the configuration map value for the "stack". 
+
+## Default lookup
+The default lookup key returns the entire configuration for your current infrastructure _stack_:
+
+```
+module "hiera" {
+  source = "../../../../hiera/"
+}
+```
+
+By default it looks up the stack name, but you can specify a `lookup_key` string either
+
+
+## 2. Using the `lookup` cli
+### Install it
+`go install github.com/lyraproj/hiera/lookup@latest`
+
+### Execute a hiera lookup
+```
+${GOPATH}/bin/lookup --config=hiera.yaml --merge=deep \
+   --var account=dev \
+   --var region=eu-west-1 \
+   --var function=ops \
+   --var stack=vpc \
+   vpc.az_count
+```
+
+Other args:
+* `--render-as json` is useful for piping the result into `jq`
+* `--explain` helps troubleshoot unexpected output
+
+# Deeper Dive into Hiera
+Hiera is a file based key-value store that performs context-aware lookups based on facts like _environment_, _region_ etc. If it finds multiple results in different hierarchies, it will return a result based on a configurable _merge strategy_ which can be:
+- first (returns highest priority value)
+- hash (merges values for top-level key)
+- deep (performs a recursive merge)
+
+## How does Hiera's context-aware, hierarchical lookup work?
+In order to be able to perform context-aware hierarchical lookups, we need three things:
+
+### 1. Search scope
+Before Hiera can search for context-aware data it needs to know some _facts_ about your Terraform deployment. It parses the calling module's directory structure to figure out values for aws_account, region, environment etc, and adds them to the Hiera provider's _scope_ parameter:
+
+```
+provider "hiera5" {
+  config = "./config/hiera.yaml"
+  merge  = "deep"
+  scope = {
+    aws_account = local.aws_account
+    environment = local.environment
+    region      = local.region
+  }
+```
+
+### 3. Hierarchy
+We need to give Hiera a _hierarchy_ of data paths to search in. This is defined in `hiera.yaml`. Defaults are applied first with low priority, and higher priority data overrides lower priority):
+```
+hierarchy:
+  - name: Region
+    path: region/%{region}.yaml
+
+  - name: Environment
+    path: environment/%{environment}.yaml
+
+  - name: AWS Account
+    path: aws_account/%{aws_account}.yaml
+
+  - name: Defaults
+    glob: defaults/*.yaml
+```
+
+### 3. YAML files
+In a file/directory structure based on the hierarchy, we can now define our data:
+
+```
+data
+  ├── aws_account
+  │   ├── internal.yaml
+  │   ├── production.yaml
+  │   └── tooling.yaml
+  ├── defaults
+  │   ├── aurora_defaults.yaml
+  │   ├── hiera_merge_behavior.yaml
+  │   ├── policies.yaml
+  │   ├── tags.yaml
+  │   └── trusted_ips.yaml
+  ├── environment
+  │   ├── shared.yaml
+  │   ├── demo.yaml
+  │   ├── dev.yaml
+  │   ├── prod.yaml
+  │   └── staging.yaml
+  ├── region
+  │   ├── eu-west-1.yaml
+  │   └── us-west-2.yaml
+  ├── stack
+  │   ├── dns
+  │   │   └── zones.yaml
+  │   ├── eks
+  │   │   ├── eks_cluster_addons.yaml
+  │   │   ├── eks_clusters.yaml
+  │   │   └── irsa_integration.yaml
+  │   ├── github
+  │   │   ├── membership.yaml
+  │   │   ├── organization.yaml
+  │   │   └── repositories.yaml
+  │   ├── terraform-s3-backends
+  │   │   └── backends.yaml
+  │   └── vpc
+  │       └── vpc.yaml
+  └── vpc
+      ├── internal-euw1.yaml
+      ├── production-euw1.yaml
+      └── tooling-euw1.yaml
+```
+## Hiera Terraform Provider
+The Hiera Terraform provider just exposes a _data resource_ which has the following features:
+1. Returns JSON data (this module converts it tonative Terraform data using `jsondecode`)
+2. Eliminates the need for templating or code-generation steps - complex data can be directly sourced during plan/apply
+3. Hiera supports _internal_ interpolation, so key values can contain lookups to _other keys_ in the Hiera data
+4. When values are found in multiple hierarchies, Hiera supports a configurable merge strategy, including _deep merge_ (which [Terraform does not support!](https://github.com/hashicorp/terraform/issues/24987))

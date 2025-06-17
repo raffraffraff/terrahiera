@@ -1,0 +1,7 @@
+apiVersion: v2
+name: cert-manager-issuers-config
+appVersion: "1.0"
+description: >-
+  A Helm chart to create cert-manager certificates and cluster issuers specifically configured
+  to use Let's Encrypt issuers with ACME DNS01 challenge and support for AWS Route53
+version: 0.1.0

@@ -1,0 +1,5 @@
+# Lets you run TF plan locally to see "what would happen with this context?"
+aws_account = "dev"
+region = "eu-west-1"
+group = "ew1a"
+stack = "eks"

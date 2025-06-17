@@ -1,0 +1,25 @@
+---
+version: 5
+
+defaults:
+  datadir: ./
+  data_hash: yaml_data
+
+hierarchy:
+  - name: Stack
+    glob: deployments/%{aws_account}/%{region}/%{group}/%{stack}/*.yaml
+
+  - name: Group
+    glob: deployments/%{aws_account}/%{region}/%{group}/*.yaml
+
+  - name: AWS Region
+    glob: deployments/%{aws_account}/%{region}/*.yaml
+
+  - name: AWS Account
+    glob: deployments/%{aws_account}/*.yaml
+
+  - name: Module Defaults
+    glob: modules/%{stack}/*.yaml
+
+  - name: Global Defaults
+    glob: deployments/defaults.yaml
