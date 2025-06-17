@@ -16,7 +16,10 @@ Each deployment directory (which I call a 'stack') is the directory where Terraf
 - Building context into directory names reduces the need to ever have to specify those values
 - Using context in lookups gives you a stack configuration tailored to your deployment
 - Interpolation lets you name things by convention, instead of hard-coding
-- Why not!
+- Minimize differences between stack directories
+- Reduce toil of cloning infrastructure to new AWS accounts, regions, stacks
+- Eliminate resource name clashes (eg: S3 buckets, DNS records, VPC CIDRs) by with naming _patterns_ that use context variables, instead of hard coded names
+- Avoid the Terraform generators with their own language, cli and performance overhead
 
 ## Interesting side effects
 The boilerplate HCL uses these local variables:
@@ -51,13 +54,7 @@ tforder -dir deployments -recursive -out infra.svg
 
 The tforder project creates visual dependency relationships between your infrastructure deployments (in much the same way that Terraform can generate a graph of dependency relationships between resources within a deployment). See the [tforder](https://github.com/raffraffraff/tforder) project for more information.
 
-# Results
-- Minimize differences between stack directories
-- Reduce toil of cloning infrastructure to new AWS accounts, regions, stacks
-- Eliminate resource name clashes (eg: S3 buckets, DNS records, VPC CIDRs) by with naming _patterns_ that use context variables, instead of hard coded names
-- Avoid the need for tools that generate Terraform, and have their own language and tooling to run it
-
-# Directory Naming Convention
+## Directory Naming Convention
 This project contains an example directory structure. It's designed to minimize the differences between each environment, region etc. The root of this project contains:
 - modules: wrapper modules that accept a single JSON encoded configuration
 - hiera: a terraform module that accepts 'context' and returns 'config'
@@ -87,12 +84,12 @@ deployments
         ...
 ```
 
-# Less talk more showme
-## The steps
+# Less talk, more demo
+## What we'll do
 1. Clone this repo
 2. Create S3 buckets to hold your TF state
 3. Run tforder to figure out what order to deploy the stacks
-4. Work through the deployments in the order given, running `tofu init && tofu apply`
+4. Deploy in the right order
 
 ## Let's go
 ```
@@ -102,9 +99,6 @@ cd terrahiera
 go install github.com/lyraproj/hiera/lookup@latest
 go install github.com/raffraffraff/tforder@latest
 ```
-
-## Let's see the stack deployment order
-`tforder -recursive -out infra.svg`
 
 ## Create S3 backend buckets. (You should do a better / secure job)
 ```
@@ -120,18 +114,10 @@ do
 done
 ```
 
-## Optional: look at the hiera config for a stack
-You can do this for any of your deployments. I haven't bothered putting this into a script (some day...)
-```
-lookup --config=hiera.yaml \
-  --var aws_account=dev \
-  --var region=eu-west-1 \
-  --var group=ew1a \
-  --var stack=eks \
-  eks
-```
+## Let's see the stack deployment order
+`tforder -recursive -out infra.svg`
 
-## YOLO (following the order in infra.svg)
+## YOLO (we're following the order in infra.svg)
 ```
 for dir in \
   deployments/dev/global/shared/apex_zones \
