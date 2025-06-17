@@ -30,19 +30,19 @@ This lookup scope contains _aws_account_ name, _region_, _group_ and finally _st
 ```
 
 # Usage
-This module is called like a regular Terraform module, but behaves a bit like a data resource instead. It reads the hierarchy rules from the hiera.yaml file in the top directory and looks up the configuration map value for the "stack". 
-
-## Default lookup
-The default lookup key returns the entire configuration for your current infrastructure _stack_:
+Use it like a any Terraform module: pass it variables and accept outputs from it. The variables should match the Hiera provider _scope_. The output is the configuration for that stack. The hiera provider uses the `hiera.yaml` in the root of this project to define the hierarchy of lookup paths. The default lookup key is your _stack_ name (eg: 'vpc') but you can also call this module and specify a `lookup_key` variable.
 
 ```
 module "hiera" {
-  source = "../../../../hiera/"
+  source      = "../../../../../hiera"
+  stack       = local.stack
+  group       = local.group
+  region      = local.region
+  aws_account = local.aws_account
 }
 ```
 
-By default it looks up the stack name, but you can specify a `lookup_key` string either
-
+By default Hiera assumes your lookup key is the `stack`, but you can also `lookup_key` variable
 
 ## 2. Using the `lookup` cli
 ### Install it
@@ -53,7 +53,7 @@ By default it looks up the stack name, but you can specify a `lookup_key` string
 ${GOPATH}/bin/lookup --config=hiera.yaml --merge=deep \
    --var account=dev \
    --var region=eu-west-1 \
-   --var function=ops \
+   --var group=ew1a \
    --var stack=vpc \
    vpc.az_count
 ```
