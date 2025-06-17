@@ -6,7 +6,7 @@ Each module in this directory generally follows this pattern:
 Many of the modules are simply _wrappers_ around a single, complex 3rd party module.
 
 # Auto-generating a wrapper
-If you wish to simply wrap an existing 3rd party module, the `./generate_wrapper.sh` script in this directory will automatically create a wrapper module for you:
+If you wish to simply wrap an existing 3rd party module, the `./generate_wrapper.sh` script in this directory will automatically create a wrapper module for you. Warning, it's hacky A.F. but works for stuff like:
 
 ```
 $ ./generate_wrapper.sh \
@@ -17,28 +17,31 @@ $ ./generate_wrapper.sh \
 $ cat vpc/main.tf
 ```
 
-Generally, you'll get a fully working wrapper module. However, you may want to do some data reformatting using `locals`, or you might wish to set a default value where none is present. A typical reason to do this can be explained with the following example YAML:
+Generally, you'll get a fully working wrapper module. 
+
+# Modifying the wrapper
+You may wish to make some overrides or modifications to the wrapper. A very contribed reason to do this can be explained with the following example YAML:
 
 ```
-things:
-  thing1:
-    foo: bar
-    var: val
-    this: that
+s3_buckets:
+  bucket1:
+    name: bucket1
+  bucket2:
+    name: bucket2
 ```
 
-When a module takes `things` as its `var.config`, and iterates over it, the `for_each` will end up with:
+If your wrapper iterates over data using `for_each` it might end up with this:
 ```
-each.key: thing1
-each.value.foo: bar
-each.value.var: val
-each.value.this: that
+each.key: bucket1
+each.value.name: bucket1
+
+each.key: bucket2
+each.value.name: bucket2
 ```
 
-If the module you are invoking has a field called "name", you might wish to pass `each.key` to it instead of `each.value.name`. 
+So you might want to set the default value of `name` to `each.key` instead of `each.value.name`
 
-## Modifying the wrapper
-There are times when you might want to modify the wrapper. For example, in the case of a VPC, you might want to fetch AWS data about availability zones in the region, and use that with the `slice()` function and the number of required AZs to selec the ones you want to use. Or you could use `cidrsubnet()` to automatically split up your VPC CIDR into a number of subnets, instead of passing them in the config data.
+Another example might be a VPC module: maybe you want to fetch data about _availabile_ AZs in a region, and use a `slice()` function with the number number of AZs required. Or if your VPC subnets are generally the same across all deployments, you might want to use `cidrsubnet()` in the module to split your VPC CIDR, instead of doing it in your stack, and passing a bunch of subnet CIDRs to the module every time.
 
 ## Example usage
 ```
