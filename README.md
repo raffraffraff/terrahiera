@@ -1,22 +1,21 @@
 # About
-This demo codebase shows one very opinionated way to deploy infrastructure using Terraform and Hiera.
+This demo codebase shows one opinionated way to configure infrastructure using Terraform and Hiera.
 
-The big idea:
+The idea:
 - Wrap complex terraform modules to accept a single JSON config (type 'any') and return a single JSON output
 - Follow strict directory structure for your stacks, embedding critical context in directory names
-- Define blocks of configuration at the most appropriate level in your directory structure, and use interpolation and templating
-- Use Hiera to perform context-aware hierarchical lookups during terraform runs, with support for deep merge
+- Define configuration at the most appropriate level in your directory structure
+- Use interpolation, templating, hierarchical lookups and deep merges
 - Use boilerplate HCL to enable simple the declaration of stack dependencies and of outputs to share with other stacks
-- Create final stack configuration by mixing outputs from Hiera, stack dependencies and custom values
-- Write specific outputs to AWS SSM Parameter Store (so they are available to other stacks)
+- Stack is a merge of Hiera config, stack dependencies and custom values
+- Specific outputs are written to AWS SSM Parameter Store (so they are available to other stacks)
 
-Each deployment directory (which I call a 'stack') is the directory where Terraform plans and applies run. The full path provides context (eg: account, region, group, stack). Since hiera lookups are context aware, and it supports YAML with interpolation and internal lookups, we can have minimal (and sometimes zero!) hard-coded values, even in TFVARS. This means that you can clone whole branches of the deployment directory tree and deploy to a different account, region or VPC with minimal changes.
+Each deployment directory (which I call a 'stack') is the directory where Terraform plans and applies run. The full path provides context (eg: account, region, group, stack). Since hiera lookups are context aware, and it supports YAML with interpolation and internal lookups, we can have minimal (and sometimes zero!) hard-coded values, even in TFVARS. This means that you can copy whole branches of the deployment directory tree and deploy to a different account, region or VPC with minimal changes config changes.
 
 ## Why
-- Build context into directory names to eliminate the need to ever have to specify those values in a file
-- Use that context in lookups so you only get back the values that apply to your exact deployment
-- Use interpolation in your YAML so you can things by convention, instead of hard-coding explicit names
-- Perform deep merge so you can override only the individual values that you need to, while benefiting from hierarchical values
+- Building context into directory names reduces the need to ever have to specify those values
+- Using context in lookups gives you a stack configuration tailored to your deployment
+- Interpolation lets you name things by convention, instead of hard-coding
 - Why not!
 
 ## Interesting side effects
