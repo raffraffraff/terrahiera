@@ -7,7 +7,7 @@ The idea:
 - Define configuration at the most appropriate level in your directory structure
 - Use interpolation, templating, hierarchical lookups and deep merges
 - Use boilerplate HCL to enable simple the declaration of stack dependencies and of outputs to share with other stacks
-- Stack is a merge of Hiera config, stack dependencies and custom values
+- Stack configuration is a merge of Hiera lookup result, stack dependencies and custom values
 - Specific outputs are written to AWS SSM Parameter Store (so they are available to other stacks)
 
 Each deployment directory (which I call a 'stack') is the directory where Terraform plans and applies run. The full path provides context (eg: account, region, group, stack). Since hiera lookups are context aware, and it supports YAML with interpolation and internal lookups, we can have minimal (and sometimes zero!) hard-coded values, even in TFVARS. This means that you can copy whole branches of the deployment directory tree and deploy to a different account, region or VPC with minimal changes config changes.
