@@ -103,10 +103,10 @@ go install github.com/lyraproj/hiera/lookup@latest
 go install github.com/raffraffraff/tforder@latest
 ```
 
-# Let's see the stack deployment order
+## Let's see the stack deployment order
 `tforder -recursive -out infra.svg`
 
-# Create S3 backend buckets. (You should do a better / secure job)
+## Create S3 backend buckets. (You should do a better / secure job)
 ```
 export COMPANY_NAME=companyname-${RANDOM}
 for BUCKET in \
