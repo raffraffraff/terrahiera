@@ -71,7 +71,7 @@ Hiera is a file based key-value store that performs context-aware lookups based 
 ## How does Hiera's context-aware, hierarchical lookup work?
 In order to be able to perform context-aware hierarchical lookups, we need three things:
 
-### 1. Search scope
+### Search scope
 Before Hiera can search for context-aware data it needs to know some _facts_ about your Terraform deployment. It parses the calling module's directory structure to figure out values for aws_account, region, environment etc, and adds them to the Hiera provider's _scope_ parameter:
 
 ```
@@ -85,7 +85,7 @@ provider "hiera5" {
   }
 ```
 
-### 3. Hierarchy
+### Hierarchy
 We need to give Hiera a _hierarchy_ of data paths to search in. This is defined in `hiera.yaml`. Defaults are applied first with low priority, and higher priority data overrides lower priority):
 ```
 hierarchy:
@@ -102,52 +102,9 @@ hierarchy:
     glob: defaults/*.yaml
 ```
 
-### 3. YAML files
-In a file/directory structure based on the hierarchy, we can now define our data:
 
-```
-data
-  ├── aws_account
-  │   ├── internal.yaml
-  │   ├── production.yaml
-  │   └── tooling.yaml
-  ├── defaults
-  │   ├── aurora_defaults.yaml
-  │   ├── hiera_merge_behavior.yaml
-  │   ├── policies.yaml
-  │   ├── tags.yaml
-  │   └── trusted_ips.yaml
-  ├── environment
-  │   ├── shared.yaml
-  │   ├── demo.yaml
-  │   ├── dev.yaml
-  │   ├── prod.yaml
-  │   └── staging.yaml
-  ├── region
-  │   ├── eu-west-1.yaml
-  │   └── us-west-2.yaml
-  ├── stack
-  │   ├── dns
-  │   │   └── zones.yaml
-  │   ├── eks
-  │   │   ├── eks_cluster_addons.yaml
-  │   │   ├── eks_clusters.yaml
-  │   │   └── irsa_integration.yaml
-  │   ├── github
-  │   │   ├── membership.yaml
-  │   │   ├── organization.yaml
-  │   │   └── repositories.yaml
-  │   ├── terraform-s3-backends
-  │   │   └── backends.yaml
-  │   └── vpc
-  │       └── vpc.yaml
-  └── vpc
-      ├── internal-euw1.yaml
-      ├── production-euw1.yaml
-      └── tooling-euw1.yaml
-```
-## Hiera Terraform Provider
-The Hiera Terraform provider just exposes a _data resource_ which has the following features:
+### Hiera Terraform Provider
+The Hiera Terraform provider exposes a _data resource_ which has the following features:
 1. Returns JSON data (this module converts it tonative Terraform data using `jsondecode`)
 2. Eliminates the need for templating or code-generation steps - complex data can be directly sourced during plan/apply
 3. Hiera supports _internal_ interpolation, so key values can contain lookups to _other keys_ in the Hiera data
