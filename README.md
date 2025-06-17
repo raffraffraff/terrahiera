@@ -13,9 +13,9 @@ The idea:
 The leaf directories under deployment are the _stack_ directories, where you run TF plans and applies. Elements of the full path should relate to the deployment context, eg: account, region, group, stack. Since hiera lookups are context aware, and it supports YAML with interpolation and internal lookups, we can have minimal (sometimes zero!) hard-coded values, even in TFVARS. This means that you can copy whole branches of the deployment directory tree and deploy to a different account, region or VPC with minimal changes config changes.
 
 ## Why
-- Building context into directory names reduces the need to ever have to specify those values
-- Using context in lookups gives you a stack configuration tailored to your deployment
-- Interpolation lets you name things by convention, instead of hard-coding
+- Building context into directory names eliminates the need to specify those values in code
+- Using context in lookups gives returns configuration tailored to your stack
+- Interpolation lets you name things by convention, writing template-like YAML instead of hard-coding
 - Minimize differences between stack directories
 - Reduce toil of cloning infrastructure to new AWS accounts, regions, stacks
 - Eliminate resource name clashes (eg: S3 buckets, DNS records, VPC CIDRs) by with naming _patterns_ that use context variables, instead of hard coded names
