@@ -10,7 +10,7 @@ The idea:
 - Stack configuration is a merge of Hiera lookup result, stack dependencies and custom values
 - Specific outputs are written to AWS SSM Parameter Store (so they are available to other stacks)
 
-The leaf directories under deployment are the _stack_ directories, where you run TF plans and applies. Elements of the full path should relate to the deployment context, eg: account, region, group, stack. Since hiera lookups are context aware, and it supports YAML with interpolation and internal lookups, we can have minimal (sometimes zero!) hard-coded values, even in TFVARS. This means that you can copy whole branches of the deployment directory tree and deploy to a different account, region or VPC with minimal changes config changes.
+The leaf directories under deployment are the _stack_ directories, where you run TF plans and applies. Elements of the full path should relate to the deployment context, eg: account, region, group, stack. Since hiera lookups are context aware, and it supports YAML with interpolation and internal lookups, we can have minimal (sometimes zero!) hard-coded values, even in TFVARS. This means that you can copy whole branches of the deployment directory tree and deploy to a different account, region or VPC easily.
 
 ## Why
 - Building context into directory names eliminates the need to specify those values in code
