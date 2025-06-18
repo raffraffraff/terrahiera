@@ -8,7 +8,7 @@ locals {
     apex_zones       = local.dependency.apex_zones.zone_map
   }
 
-  stack_config = merge(local.custom_config, jsondecode(module.hiera.json))
+  stack_config = merge(local.custom_config, local.hiera_output)
 
   outputs = [
     "name",

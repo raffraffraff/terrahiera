@@ -12,7 +12,7 @@ locals {
     aws_profile    = local.aws_profile
   }
 
-  stack_config = merge(local.custom_config, jsondecode(module.hiera.json))
+  stack_config = merge(local.custom_config, local.hiera_output)
 
   outputs = [
     "cluster_oidc_issuer_url",

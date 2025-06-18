@@ -31,6 +31,9 @@ locals {
              key => module.this.output[key] 
   }
 
+  # The result from stack config lookup in Hiera
+  hiera_output = jsondecode(module.hiera.json)
+
 }
 
 # Save outputs to SSM Parameter Store, for other modules to use
