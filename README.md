@@ -21,8 +21,8 @@ The leaf directories under deployment are the _stack_ directories, where you run
 - Eliminate resource name clashes (eg: S3 buckets, DNS records, VPC CIDRs) by with naming _patterns_ that use context variables, instead of hard coded names
 - Avoid the Terraform generators with their own language, cli and performance overhead
 
-## Interesting side effects
-The boilerplate HCL uses these local variables:
+## Useful Side Effects
+The boilerplate HCL makes use of these declarations in your `main.tf`:
 ```
 locals {
   dependencies = {
@@ -38,13 +38,8 @@ locals {
 }
 ```
 
-Each stack will save a subset of the wrapped module's outputs to SSM Parameter Store in an automatically derived path. This means that we can easily look up the dependencies 'vpc' and 'dns', and provide their outputs to our stack, eg:
-
-```
-vpc_id = local.dependency.vpc.vpc_id
-```
-
-This is safer than using Terraform remote state lookups, which make it necessary to expose all of the module outputs to dependents. It also reduces manual effort in writing multiple Terraform remote state lookups. But there is another interesting side effect. If we compile all of these dependencies across our stacks, we can build a Directed Acyclical Graph that shows us a dependency tree for our stack, or for the entire infrastructure. 
+### 1. Dependency graph
+One side effect is that we can grab these dependencies across our whole infrastructure project and build a Directed Acyclical Graph. I built a tool called tforder that does exactly this, and can output `.dot`, `.svg` or `.png` files:
 
 ```
 go install github.com/raffraffraff/tforder@latest
@@ -52,9 +47,17 @@ tforder -dir deployments -recursive -out infra.dot
 tforder -dir deployments -recursive -out infra.svg
 ```
 
-The tforder project creates visual dependency relationships between your infrastructure deployments (in much the same way that Terraform can generate a graph of dependency relationships between resources within a deployment). See the [tforder](https://github.com/raffraffraff/tforder) project for more information.
+I plan to add more features, including creation of [Spacelift stack dependency](https://docs.spacelift.io/concepts/stack/stack-dependencies), and the ability to execute commands in each deployment directory in the correct order, with configurable parallelism.
 
-## Directory Naming Convention
+### 2. Safe, automatic state sharing
+Instead of using `terraform_remote_state` (which opens up access to the entire remote state, including potentially sensitive data), our boilerplate uses AWS SSM Parameter Store to share selected outputs, which are automatically available as follows:
+
+```
+zone_id = local.dependency.dns.zone_id
+vpc_id  = local.dependency.vpc.vpc_id
+``` 
+
+## Directory Structure - Naming Convention
 _This_ project contains an example directory structure. (You can come up with your own, but you'll have to update the `hiera.yaml` and consider where you want to store YAML files). The root of this project contains:
 - modules: wrapper modules that accept a single JSON encoded configuration
 - hiera: a terraform module that accepts context (which the provider calls 'scope') and returns config
