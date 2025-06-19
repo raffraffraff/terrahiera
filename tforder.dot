@@ -1,4 +1,6 @@
 digraph tforder {
+  "deployments/dev/eu-west-1/ew1b/vpc" -> "deployments/dev/eu-west-1/ew1b/eks";
+  "deployments/dev/global/shared/apex_zones" -> "deployments/dev/eu-west-1/ew1b/vpc";
   "deployments/dev/eu-west-1/ew1a/vpc" -> "deployments/dev/eu-west-1/ew1a/eks";
   "deployments/dev/global/shared/apex_zones" -> "deployments/dev/eu-west-1/ew1a/vpc";
 }
