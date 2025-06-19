@@ -39,7 +39,7 @@ locals {
 ```
 
 ### 1. Dependency graph
-One side effect is that we can grab these dependencies across our whole infrastructure project and build a Directed Acyclical Graph. I built a tool called tforder that does exactly this, and can output `.dot`, `.svg` or `.png` files:
+One side effect is that we can grab these dependencies across our whole infrastructure project and build a Directed Acyclical Graph. I built a tool called [tforder](https://github.com/raffraffraff/tforder) that does exactly this, and can output `.dot`, `.svg` or `.png` files:
 
 ```
 go install github.com/raffraffraff/tforder@latest
