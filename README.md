@@ -66,25 +66,26 @@ _This_ project contains an example directory structure. (You can come up with yo
 ## Example Deployment Directories
 ```
 deployments
-├── dev               <--- one of many AWS accounts
-│    ├── eu-west-1    <--- one of many regions
-│    │   └── ew1a     <--- one of many groups
-│    │       ├── eks  <--- one of many stacks
-│    │       ├── envs
-│    │       ├── s3
-│    │       └── vpc
-│    └── global       <--- kind of a region?
-│        └── shared   <--- kind of a group?
-│            └── apex_zones
-└── beta              
+├── beta             <-- AWS account
+│   ├── eu-west-2    <-- region
+│   │   └── ew2a     <-- group
+│   │       ├── eks  <-- stack
+│   │       └── vpc
+│   └── global
+│       └── shared
+│           └── apex_zones
+└── dev
     ├── eu-west-1
-    │   └── ew1a
+    │   ├── ew1a
+    │   │   ├── eks
+    │   │   └── vpc
+    │   └── ew1b
     │       ├── eks
-    │       ├── envs
-    │       ├── s3
     │       └── vpc
-    └── us-east-1
-        ...
+    └── global
+        └── shared
+            └── apex_zones
+
 ```
 
 # Less talk, more demo
