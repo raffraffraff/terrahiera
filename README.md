@@ -44,10 +44,10 @@ One side effect is that we can grab these dependencies across our whole infrastr
 ```
 go install github.com/raffraffraff/tforder@latest
 tforder -dir deployments -recursive -out infra.dot
-tforder -dir deployments -recursive -out infra.svg
+tforder -dir deployments -recursive -relative-to deployments -out infra.svg
 ```
 
-I plan to add more features, including creation of [Spacelift stack dependency](https://docs.spacelift.io/concepts/stack/stack-dependencies), and the ability to execute commands in each deployment directory in the correct order, with configurable parallelism.
+![infra.svg](https://github.com/raffraffraff/terrahiera/blob/main/infra.svg?raw=true)
 
 ### 2. Safe, automatic state sharing
 Instead of using `terraform_remote_state` (which opens up access to the entire remote state, including potentially sensitive data), our boilerplate uses AWS SSM Parameter Store to share selected outputs, which are automatically available as follows:
