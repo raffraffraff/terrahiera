@@ -61,7 +61,7 @@ locals {
 ```
 
 ## 1. Dependency graph
-One side effect is that we can grab these dependencies across our whole infrastructure project and build a Directed Acyclical Graph. I built a tool called [tforder](https://github.com/raffraffraff/tforder) that does exactly this, and can output `.dot`, `.svg` or `.png` files:
+One side effect is that we can grab these dependencies across our whole infrastructure project and build a Directed Acyclical Graph. I built a tool called [tforder](https://github.com/raffraffraff/tforder) that does exactly this, and can output a simpled numbered list of deployments, or create `.dot`, `.svg` or `.png` files. It can also execute commands in each deployment directory in order, with configuration parallelism. To install and test it:
 
 ```
 go install github.com/raffraffraff/tforder@latest
@@ -115,8 +115,8 @@ deployments
 ## What we'll do
 1. Clone this repo
 2. Create S3 buckets to hold your TF state
-3. Run tforder to figure out what order to deploy the stacks
-4. Deploy in the right order
+3. Use tforder to figure out what order to deploy the stacks
+4. Use tforder to deploy the whole infrastructure, in the correct order
 
 ## Let's go
 ```
@@ -144,16 +144,9 @@ done
 ## Let's see the stack deployment order
 `tforder -recursive -out infra.svg`
 
-## YOLO (we're following the order in infra.svg)
-```
-for dir in \
-  deployments/dev/global/shared/apex_zones \
-  deployments/dev/eu-west-1/ew1a/vpc \
-  deployments/dev/eu-west-1/ew1a/eks
-do
-  (cd $dir && tofu init && tofu apply -auto-approve)
-done
-```
+## YOLO 
+Let's use the short flag format. We'll recursively deploy the whole shebang!
+`tforder -r -d deployments -x 'tofu init && tofu apply -auto-approve'`
 
 ## Cloning deployments?
 Let's clone the whole `ew1a` group to deploy in the region eu-west-1. (We'd usually have a lot more than VPC and EKS, also we could have cloned eu-west-1 to us-east-1 or whatever, it's just a demo).
@@ -178,7 +171,5 @@ $ find ew1b -type f -name '*.yaml'
 ew2a/vpc/config.yaml
 ```
 
-* Just one file, with just one change. Let's update the VPC CIDR '10.21.0.0/16'
-* Rerun tforder
-* Apply the changes in the correct order
-
+Just one file, with just one change! Let's update the VPC CIDR '10.21.0.0/16' and rerun the deployment:
+`tforder -r -d deployments -x 'tofu init && tofu apply -auto-approve'`
