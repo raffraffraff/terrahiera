@@ -110,7 +110,7 @@ deployments
 
 ```
 
-# Less talk, more demo
+# Demonstration
 
 ## What we'll do
 1. Clone this repo
