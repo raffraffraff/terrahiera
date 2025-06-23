@@ -1,27 +1,49 @@
 # About
 This demo codebase shows one opinionated way to configure infrastructure using Terraform and Hiera.
 
-The idea:
+## main.tf
+The main.tf is very simple. It uses local variables to specify specify:
+ - Dependencies
+ - Module inputs
+ - Outputs
+
+## _boilerplate.tf
+The _boilerplate.tf will automatically:
+- Fetch outputs from dependencies
+- Fetch configuration from Hiera
+- Write selected outputs to SSM parameter store
+
+# How does it work?
+To use this codebase (or this pattern, in your own codebase), you must follow these steps:
 - Wrap complex terraform modules to accept a single JSON config (type 'any') and return a single JSON output
 - Follow strict directory structure for your stacks, embedding critical context in directory names
 - Define configuration at the most appropriate level in your directory structure
-- Use interpolation, templating, hierarchical lookups and deep merges
-- Use boilerplate HCL to enable simple the declaration of stack dependencies and of outputs to share with other stacks
-- Stack configuration is a merge of Hiera lookup result, stack dependencies and custom values
-- Specific outputs are written to AWS SSM Parameter Store (so they are available to other stacks)
+- Use interpolation, templating, hierarchical lookups within your YAML
 
-The leaf directories under deployment are the _stack_ directories, where you run TF plans and applies. Elements of the full path should relate to the deployment context, eg: account, region, group, stack. Since hiera lookups are context aware, and it supports YAML with interpolation and internal lookups, we can have minimal (sometimes zero!) hard-coded values, even in TFVARS. This means that you can copy whole branches of the deployment directory tree and deploy to a different account, region or VPC easily.
+The leaf directories under 'deployment' are the _stack_ directories where you run TF plans and applies. Elements of their full path relate to the deployment _context_:
+- account
+- region
+- group (arbitrary)
+- stack
 
-## Why
-- Building context into directory names eliminates the need to specify those values in code
-- Using context in lookups gives returns configuration tailored to your stack
-- Interpolation lets you name things by convention, writing template-like YAML instead of hard-coding
-- Minimize differences between stack directories
-- Reduce toil of cloning infrastructure to new AWS accounts, regions, stacks
-- Eliminate resource name clashes (eg: S3 buckets, DNS records, VPC CIDRs) by with naming _patterns_ that use context variables, instead of hard coded names
-- Avoid the Terraform generators with their own language, cli and performance overhead
+You could extend this, adding other directories that have an explicit purpose (eg: owner, type, purpose etc). 
 
-## Useful Side Effects
+# Why do this?
+- Building context into directory names
+  - Eliminates the need to specify those values in code
+  - Reduces number of lines of code / config
+- Using deployment context in lookups 
+  - returns configuration tailored to your stack
+  - eliminates large .tfvars
+- Interpolation, templating
+   - Reduces number of lines of code
+   - Eliminates resource name clashes
+   - Keeps code DRY
+- Minimize differences between stack deployment directories 
+   - Enables cloning of stacks, regions, accounts with reduced toil
+- Avoids code generators with their own language, cli and performance overhead
+
+# Useful Side Effects
 The boilerplate HCL makes use of these declarations in your `main.tf`:
 ```
 locals {
@@ -38,7 +60,7 @@ locals {
 }
 ```
 
-### 1. Dependency graph
+## 1. Dependency graph
 One side effect is that we can grab these dependencies across our whole infrastructure project and build a Directed Acyclical Graph. I built a tool called [tforder](https://github.com/raffraffraff/tforder) that does exactly this, and can output `.dot`, `.svg` or `.png` files:
 
 ```
@@ -57,7 +79,7 @@ zone_id = local.dependency.dns.zone_id
 vpc_id  = local.dependency.vpc.vpc_id
 ``` 
 
-## Directory Structure - Naming Convention
+# Directory Structure - Naming Convention
 _This_ project contains an example directory structure. (You can come up with your own, but you'll have to update the `hiera.yaml` and consider where you want to store YAML files). The root of this project contains:
 - modules: wrapper modules that accept a single JSON encoded configuration
 - hiera: a terraform module that accepts context (which the provider calls 'scope') and returns config
